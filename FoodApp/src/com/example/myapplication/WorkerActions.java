@@ -234,7 +234,7 @@ public class WorkerActions extends Thread {
                         if (store.getCategory().equalsIgnoreCase(requestedType)) {
                             for (Purchase purchase : store.getPurchases()) {
                                 for (Product p : purchase.getPurchasedProducts()) {
-                                    totalSold += p.getQuantity();  // Sum all quantities
+                                  totalSold += p.getQuantity() * p.getPrice(); // Sum value, not just quantity
                                 }
                             }
                             result.put(store.getStoreName(), totalSold);
