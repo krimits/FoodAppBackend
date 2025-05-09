@@ -346,9 +346,16 @@ public class Client {
                             System.out.println("No purchases found for this customer at this store.");
                         } else {
                             System.out.println("Purchases for customer '" + customerName + "' at store '" + storeName + "':");
+                            double total = 0.0;
                             for (Map.Entry<String, Integer> entry : purchases.entrySet()) {
-                                System.out.println("- " + entry.getKey() + " x" + entry.getValue());
+                                String productName = entry.getKey();
+                                int quantity = entry.getValue();
+                                double price = getProductPriceFromStoreJson(storeName, productName);
+                                double subtotal = price * quantity;
+                                total += subtotal;
+                                System.out.printf("- %s x%d (%.2f€)%n", productName, quantity, subtotal);
                             }
+                            System.out.printf("Συνολική αξία: %.2f€%n", total);
                         }
                     } else {
                         System.out.println("Unexpected response from server.");
@@ -369,5 +376,32 @@ public class Client {
                 System.out.println("Invalid option.");
             }
         }
+    }
+
+    // Βοηθητική μέθοδος για εύρεση τιμής προϊόντος από το store.json
+    private static double getProductPriceFromStoreJson(String storeName, String productName) {
+        try {
+            org.json.simple.parser.JSONParser parser = new org.json.simple.parser.JSONParser();
+            java.io.FileReader reader = new java.io.FileReader("src/com/example/myapplication/store.json");
+            org.json.simple.JSONArray stores = (org.json.simple.JSONArray) parser.parse(reader);
+            for (Object storeObj : stores) {
+                org.json.simple.JSONObject store = (org.json.simple.JSONObject) storeObj;
+                if (storeName.equalsIgnoreCase((String) store.get("StoreName"))) {
+                    org.json.simple.JSONArray products = (org.json.simple.JSONArray) store.get("Products");
+                    for (Object productObj : products) {
+                        org.json.simple.JSONObject product = (org.json.simple.JSONObject) productObj;
+                        if (productName.equalsIgnoreCase((String) product.get("ProductName"))) {
+                            Object priceObj = product.get("Price");
+                            if (priceObj instanceof Number) {
+                                return ((Number) priceObj).doubleValue();
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            // Αν δεν βρεθεί τιμή, επιστρέφει 0
+        }
+        return 0.0;
     }
 }
